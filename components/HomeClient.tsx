@@ -68,7 +68,7 @@ const HomeClient = ({ initialDocuments, userId, email }: HomeClientProps) => {
               </div>
               <h2 className="mb-3 text-xl font-semibold text-white">No matching documents</h2>
               <p className="mb-8 max-w-md text-center text-gray-400">
-                No documents match your search "{searchQuery}"
+                No documents match your search &quot;{searchQuery}&quot;
               </p>
             </>
           ) : (
