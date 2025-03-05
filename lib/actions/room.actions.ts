@@ -66,13 +66,34 @@ export const updateDocument = async (roomId: string, title: string) => {
   }
 }
 
-export const getDocuments = async (email: string ) => {
+// This function is now marked with "use server" to be callable from client components
+export async function getDocuments(email: string, searchQuery?: string) {
+  'use server';
+  
   try {
-      const rooms = await liveblocks.getRooms({ userId: email });
+    const rooms = await liveblocks.getRooms({ userId: email });
     
-      return parseStringify(rooms);
+    // If search query is provided, filter rooms by title
+    if (searchQuery && searchQuery.trim() !== '') {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      
+      // Filter rooms where title contains the search query (case insensitive)
+      const filteredRooms = {
+        ...rooms,
+        data: rooms.data.filter((room: any) => {
+          const title = room.metadata?.title?.toLowerCase() || '';
+          return title.includes(lowerCaseQuery);
+        })
+      };
+      
+      return parseStringify(filteredRooms);
+    }
+    
+    return parseStringify(rooms);
   } catch (error) {
     console.log(`Error happened while getting rooms: ${error}`);
+    // Return empty array if there's an error
+    return parseStringify({ data: [] });
   }
 }
 
