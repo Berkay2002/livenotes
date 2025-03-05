@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Inter as FontSans } from "next/font/google";
-import { cn } from "@/lib/utils";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
-import Provider from "./Provider";
+import { Inter as FontSans } from "next/font/google"
+
+import { cn } from "@/lib/utils"
+import './globals.css'
+import { Metadata } from "next"
+import { ClerkProvider } from "@clerk/nextjs"
+import { dark } from "@clerk/themes"
+import Provider from "./Provider"
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -12,28 +13,26 @@ const fontSans = FontSans({
 })
 
 export const metadata: Metadata = {
-  title: "LiveNotes",
-  description: "LiveNotes is a note-taking app that allows you to take notes in real-time.",
-};
+  title: 'LiveDocs',
+  description: 'Your go-to collaborative editor',
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
-  return ( 
-    <ClerkProvider 
+  return (
+    <ClerkProvider
       appearance={{
         baseTheme: dark,
-        variables: {
-          colorPrimary: "#3371FF",
-          fontSize: "16px",
+        variables: { 
+          colorPrimary: "#3371FF" ,
+          fontSize: '16px'
         },
       }}
-    > 
+    >
       <html lang="en" suppressHydrationWarning>
-        <head />
-        <body 
+        <body
           className={cn(
             "min-h-screen font-sans antialiased",
-            fontSans.variable 
+            fontSans.variable
           )}
         >
           <Provider>
@@ -42,5 +41,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }
