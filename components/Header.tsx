@@ -1,24 +1,31 @@
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
+import LiveNotesLogo from '@/components/ui/live-notes-logo'
+
+interface HeaderProps {
+  children?: React.ReactNode;
+  className?: string;
+}
 
 const Header = ({ children, className }: HeaderProps) => {
   return (
     <div className={cn("header", className)}>
-      <Link href='/' className="md:flex-1">
-        <Image 
-          src="/assets/icons/logo.svg"
-          alt="Logo with name"
-          width={120}
-          height={32}
-          className="hidden md:block"
+      <Link href='/' className="md:flex-1 flex items-center">
+        {/* Full logo (icon + text) for medium screens and above */}
+        <LiveNotesLogo 
+          variant="full"
+          width={240}
+          height={72}
+          className="hidden md:block max-h-[48px] lg:max-h-[60px] w-auto"
         />
-        <Image 
-          src="/assets/icons/logo-icon.svg"
-          alt="Logo"
-          width={32}
-          height={32}
-          className="mr-2 md:hidden"
+        
+        {/* Icon-only for mobile screens */}
+        <LiveNotesLogo
+          variant="icon"
+          width={36}
+          height={36}
+          className="md:hidden"
         />
       </Link>
       {children}
