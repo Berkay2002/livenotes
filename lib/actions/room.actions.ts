@@ -119,23 +119,33 @@ export async function getDocuments(email: string, searchQuery?: string) {
     return await getCachedData(cacheKey, async () => {
       console.time('getDocuments');
       
-      // Base query parameters
-      const queryParams: any = { userId: email };
+      // Get all rooms for the user
+      const rooms = await liveblocks.getRooms({ userId: email });
       
-      // Add search query if provided
-      if (searchQuery) {
-        queryParams.query = searchQuery;
+      // If search query is provided, filter rooms by title
+      if (searchQuery && searchQuery.trim() !== '') {
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        
+        // Filter rooms where title contains the search query (case insensitive)
+        const filteredRooms = {
+          ...rooms,
+          data: rooms.data.filter((room: any) => {
+            const title = room.metadata?.title?.toLowerCase() || '';
+            return title.includes(lowerCaseQuery);
+          })
+        };
+        
+        console.timeEnd('getDocuments');
+        return parseStringify(filteredRooms);
       }
       
-      const { data } = await liveblocks.getRooms(queryParams);
-
       console.timeEnd('getDocuments');
-      return parseStringify(data);
+      return parseStringify(rooms);
     });
   } catch (error) {
     console.error("Error fetching documents:", error);
     // Return empty array instead of throwing an error
-    return [];
+    return parseStringify({ data: [] });
   }
 }
 

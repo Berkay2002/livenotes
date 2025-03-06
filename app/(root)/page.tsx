@@ -61,12 +61,13 @@ function MobileSearchSection({ email }: { email: string }) {
 const DocumentsSection = async ({ email }: { email: string }) => {
   // This will be streamed in after the initial HTML is sent
   const roomDocuments = await getDocuments(email);
+  const documents = roomDocuments.data || [];
   
   return (
     <>
-      {roomDocuments.length > 0 ? (
+      {documents.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {roomDocuments.map((document: Document, index: number) => (
+          {documents.map((document: Document, index: number) => (
             <div key={document.id} className="group relative rounded-lg bg-dark-200 p-5 shadow-md transition-all hover:bg-dark-300 hover:shadow-xl">
               <div className="mb-4 flex h-36 items-center justify-center rounded bg-dark-100/70">
                 <Image 
