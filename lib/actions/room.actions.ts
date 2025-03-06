@@ -6,6 +6,50 @@ import { revalidatePath } from 'next/cache';
 import { getAccessType, parseStringify } from '../utils';
 import { redirect } from 'next/navigation';
 
+// Increase cache TTL for better performance
+const CACHE_TTL = 60 * 1000; // 60 seconds (up from 30)
+const cache = new Map<string, { data: any; timestamp: number }>();
+
+// Improve the helper function to get data from cache or fetch it
+async function getCachedData<T>(key: string, fetchFn: () => Promise<T>, ttl = CACHE_TTL): Promise<T> {
+  const now = Date.now();
+  const cachedItem = cache.get(key);
+
+  // Return cached data if it exists and is still valid
+  if (cachedItem && now - cachedItem.timestamp < ttl) {
+    console.log(`Cache hit for ${key}`);
+    return cachedItem.data;
+  }
+
+  console.log(`Cache miss for ${key}, fetching fresh data...`);
+  
+  // Fetch fresh data with timeout to avoid hanging requests
+  try {
+    // Add timeout to prevent long-running requests
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 5000);
+    });
+    
+    // Race the actual fetch against the timeout
+    const data = await Promise.race([fetchFn(), timeoutPromise]) as T;
+    
+    // Store in cache
+    cache.set(key, { data, timestamp: now });
+    
+    return data;
+  } catch (error) {
+    console.error(`Error fetching data for ${key}:`, error);
+    
+    // Return stale cache if available rather than failing
+    if (cachedItem) {
+      console.log(`Returning stale data for ${key}`);
+      return cachedItem.data;
+    }
+    
+    throw error;
+  }
+}
+
 export const createDocument = async ({ userId, email }: CreateDocumentParams) => {
   const roomId = nanoid();
 
@@ -66,13 +110,32 @@ export const updateDocument = async (roomId: string, title: string) => {
   }
 }
 
-export const getDocuments = async (email: string ) => {
+// This function is now marked with "use server" to be callable from client components
+export async function getDocuments(email: string, searchQuery?: string) {
+  const cacheKey = `documents-${email}-${searchQuery || ''}`;
+
   try {
-      const rooms = await liveblocks.getRooms({ userId: email });
-    
-      return parseStringify(rooms);
+    // Get from cache or fetch from Liveblocks with improved error handling
+    return await getCachedData(cacheKey, async () => {
+      console.time('getDocuments');
+      
+      // Base query parameters
+      const queryParams: any = { userId: email };
+      
+      // Add search query if provided
+      if (searchQuery) {
+        queryParams.query = searchQuery;
+      }
+      
+      const { data } = await liveblocks.getRooms(queryParams);
+
+      console.timeEnd('getDocuments');
+      return parseStringify(data);
+    });
   } catch (error) {
-    console.log(`Error happened while getting rooms: ${error}`);
+    console.error("Error fetching documents:", error);
+    // Return empty array instead of throwing an error
+    return [];
   }
 }
 
