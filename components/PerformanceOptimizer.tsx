@@ -2,33 +2,6 @@
 
 import { useEffect } from 'react';
 
-/**
- * PerformanceOptimizer Component
- * 
- * IMPORTANT PERFORMANCE GUIDELINES:
- * 
- * 1. WHAT TO KEEP:
- *    - Font optimization (display: swap)
- *    - Preconnect hints for third-party domains
- *    - Resource preloading for critical assets
- *    - Deferring non-critical scripts
- *    - Web Vitals monitoring
- * 
- * 2. WHAT TO AVOID:
- *    - Don't add synchronous, render-blocking scripts
- *    - Don't add large JavaScript libraries in this component
- *    - Don't remove the fetchPriority hints for critical images
- *    - Don't add heavy computations in the useEffect
- * 
- * 3. WHEN ADDING NEW FEATURES:
- *    - Use performance monitoring to measure impact
- *    - Apply lazy loading for below-the-fold content
- *    - Add new domains to preconnect list when using new third-party services
- *    - Update critical assets list when adding new key visual elements
- * 
- * This component improves Core Web Vitals by optimizing resource loading
- * without changing the visible UI. It should be kept in the root layout.
- */
 export function PerformanceOptimizer() {
   useEffect(() => {
     // Optimize font loading
@@ -39,7 +12,6 @@ export function PerformanceOptimizer() {
     }
 
     // Add connection preloading to improve initial load
-    // IMPORTANT: Keep this list updated with all third-party domains
     const preconnectUrls = [
       'https://img.clerk.com', // Clerk images
       'https://api.liveblocks.io', // Liveblocks API
@@ -54,7 +26,6 @@ export function PerformanceOptimizer() {
     });
 
     // Preload critical assets
-    // IMPORTANT: Keep this list updated with the most important visual assets
     const criticalAssets = [
       '/assets/icons/doc.svg',
       '/assets/images/empty-documents.png'
@@ -70,7 +41,6 @@ export function PerformanceOptimizer() {
     });
 
     // Enable priority hints for images
-    // IMPORTANT: This helps browsers prioritize LCP images
     setTimeout(() => {
       const importantImages = document.querySelectorAll('img[loading="eager"]');
       importantImages.forEach(img => {
@@ -80,7 +50,6 @@ export function PerformanceOptimizer() {
     }, 0);
 
     // Optimize third-party scripts
-    // IMPORTANT: Keep this to ensure scripts don't block rendering
     const deferScripts = () => {
       const nonCriticalScripts = Array.from(document.querySelectorAll('script')).filter(script => {
         return !script.hasAttribute('type') || script.getAttribute('type') === 'text/javascript';
@@ -100,7 +69,6 @@ export function PerformanceOptimizer() {
     }
 
     // Report web vitals to Sentry
-    // IMPORTANT: This monitoring helps identify regressions
     if ('addEventListener' in window) {
       const observer = new PerformanceObserver((entryList) => {
         for (const entry of entryList.getEntries()) {

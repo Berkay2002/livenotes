@@ -14,33 +14,6 @@ import { DeleteModal } from '@/components/DeleteModal';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/**
- * PAGE COMPONENT PERFORMANCE BEST PRACTICES
- * 
- * 1. COMPONENT STRUCTURE:
- *    - KEEP the component hierarchy with smaller, focused components
- *    - KEEP server components for data-fetching parts
- *    - KEEP client components minimal and focused on interactivity
- *    - DON'T mix data fetching and UI rendering in the same component
- * 
- * 2. SUSPENSE & STREAMING:
- *    - KEEP Suspense boundaries around data-dependent components
- *    - KEEP appropriate skeleton loaders matching component dimensions
- *    - DON'T create unnecessarily nested Suspense boundaries
- *    - ENSURE each suspense boundary has a well-designed fallback
- * 
- * 3. IMAGE OPTIMIZATION:
- *    - KEEP priority={true} for above-the-fold images
- *    - KEEP loading="eager" for LCP (Largest Contentful Paint) images
- *    - USE loading="lazy" for below-the-fold images
- *    - ALWAYS specify width and height to prevent layout shifts
- * 
- * 4. DATA FETCHING:
- *    - USE parallel data fetching with component streaming
- *    - AVOID sequential/waterfall requests
- *    - LEVERAGE cached server actions for repetitive data
- */
-
 // Define interface for document type
 interface Document {
   id: string;
@@ -102,8 +75,8 @@ const DocumentsSection = async ({ email }: { email: string }) => {
                   width={40}
                   height={40}
                   className="opacity-70"
-                  priority={index < 4} // Critical for LCP - first 4 images load with priority
-                  loading={index < 4 ? "eager" : "lazy"} // Eager for visible, lazy for below fold
+                  priority={index < 4}
+                  loading={index < 4 ? "eager" : "lazy"}
                 />
               </div>
 
@@ -135,7 +108,7 @@ const DocumentsSection = async ({ email }: { email: string }) => {
             width={270}
             height={200}
             className="object-contain"
-            priority={true} // Empty state image is important for UX
+            priority={true}
             loading="eager"
           />
           <h3 className="text-center text-lg font-bold text-white">

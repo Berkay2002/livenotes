@@ -7,9 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value));
 
-// Fix the UserType type definition
-export type UserType = 'creator' | 'editor' | 'viewer';
-
 export const getAccessType = (userType: UserType) => {
   switch (userType) {
     case 'creator':
