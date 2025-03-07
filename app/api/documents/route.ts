@@ -7,11 +7,24 @@ export async function GET(req: NextRequest) {
     const email = searchParams.get('email');
 
     if (!email) {
+      console.error('API: Email parameter is missing');
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
+    console.log(`API: Fetching documents for email: ${email}`);
+
     // Reuse the existing getDocuments function
     const documents = await getDocuments(email);
+    
+    if (!documents || !documents.data) {
+      console.warn('API: No documents data returned from getDocuments');
+      return NextResponse.json({
+        status: 'success',
+        data: []
+      });
+    }
+
+    console.log(`API: Found ${documents.data.length} documents`);
 
     // Format the response to match what DocumentsList expects
     return NextResponse.json({
@@ -28,9 +41,9 @@ export async function GET(req: NextRequest) {
       })) || []
     });
   } catch (error) {
-    console.error('Error fetching documents:', error);
+    console.error('API: Error fetching documents:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch documents' },
+      { error: 'Failed to fetch documents', details: String(error) },
       { status: 500 }
     );
   }
@@ -42,11 +55,14 @@ export async function POST(req: NextRequest) {
     const { userId, email } = body;
 
     if (!userId || !email) {
+      console.error('API: Missing required fields for document creation', { userId: !!userId, email: !!email });
       return NextResponse.json(
         { error: 'userId and email are required' },
         { status: 400 }
       );
     }
+
+    console.log(`API: Creating document for user: ${userId}, email: ${email}`);
 
     // Create a new document using the existing createDocument function
     const newDocument = await createDocument({
@@ -55,8 +71,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!newDocument) {
+      console.error('API: Document creation failed - no document returned');
       throw new Error('Failed to create document');
     }
+
+    console.log(`API: Document created with ID: ${newDocument.id}`);
 
     return NextResponse.json({
       status: 'success',
@@ -66,9 +85,9 @@ export async function POST(req: NextRequest) {
       createdAt: newDocument.createdAt
     });
   } catch (error) {
-    console.error('Error creating document:', error);
+    console.error('API: Error creating document:', error);
     return NextResponse.json(
-      { error: 'Failed to create document' },
+      { error: 'Failed to create document', details: String(error) },
       { status: 500 }
     );
   }

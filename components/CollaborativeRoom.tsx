@@ -67,7 +67,29 @@ const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: Col
       <ClientSideSuspense fallback={<Loader />}>
         <div className="collaborative-room">
           <Header>
-            <div ref={containerRef} className="flex w-fit items-center justify-center gap-2">
+            {/* Mobile: Back button and simple title */}
+            <div className="flex md:hidden items-center gap-2">
+              <a href="/" className="p-2 text-white">
+                <Image
+                  src="/assets/icons/arrow-clockwise.svg"
+                  alt="back"
+                  width={20}
+                  height={20}
+                  className="rotate-180"
+                />
+              </a>
+              <div className="flex flex-col">
+                <h1 className="text-white font-medium truncate max-w-[170px]">
+                  {documentTitle || "Untitled Document"}
+                </h1>
+                <p className="text-xs text-gray-400">
+                  {currentUserType === 'editor' ? 'Can edit' : 'View only'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Desktop: Editable title */}
+            <div ref={containerRef} className="hidden md:flex w-fit items-center justify-center gap-2">
               {editing && !loading ? (
                 <Input 
                   type="text"
@@ -102,8 +124,12 @@ const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: Col
 
               {loading && <p className="text-sm text-gray-400">saving...</p>}
             </div>
+            
+            {/* Shared actions for both mobile and desktop */}
             <div className="flex w-full flex-1 justify-end gap-2 sm:gap-3">
-              <ActiveCollaborators />
+              <div className="hidden md:block">
+                <ActiveCollaborators />
+              </div>
 
               <ShareModal 
                 roomId={roomId}
