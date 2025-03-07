@@ -146,14 +146,6 @@ const Home = async () => {
           </Suspense>
         </section>
         
-        {/* Mobile only: Floating action button */}
-        <div className="block md:hidden fixed bottom-6 right-6 z-10">
-          <AddDocumentBtn 
-            userId={clerkUser.id} 
-            email={email} 
-            isMobile={true} 
-          />
-        </div>
       </div>
     </main>
   );

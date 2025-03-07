@@ -19,6 +19,11 @@ const HomeClient = ({ initialDocuments, userId, email }: HomeClientProps) => {
   const searchQuery = searchParams.get('query') || '';
   const [documents, setDocuments] = useState(initialDocuments);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Debug props
+  useEffect(() => {
+    console.log('HomeClient props:', { userId, email });
+  }, [userId, email]);
 
   useEffect(() => {
     // If search query changes, filter the documents
@@ -36,7 +41,7 @@ const HomeClient = ({ initialDocuments, userId, email }: HomeClientProps) => {
   }, [searchQuery, initialDocuments]);
 
   return (
-    <>
+    <div className="pb-28 md:pb-8"> {/* Increased bottom padding for mobile to ensure content doesn't scroll behind navbar */}
       {documents.length > 0 ? (
         <div className="space-y-8">
           <div className="flex items-center justify-between">
@@ -88,7 +93,7 @@ const HomeClient = ({ initialDocuments, userId, email }: HomeClientProps) => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

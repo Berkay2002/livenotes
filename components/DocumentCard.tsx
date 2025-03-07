@@ -6,6 +6,9 @@ import { MoreHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DeleteModal } from './DeleteModal';
+import { MobileActionMenu } from './MobileActionMenu';
+import { useUser } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
 
 interface DocumentCardProps {
   document: DocumentData;
@@ -13,6 +16,19 @@ interface DocumentCardProps {
 
 const DocumentCard = ({ document }: DocumentCardProps) => {
   const { id, metadata, createdAt } = document;
+  const { user } = useUser();
+  const [isOwner, setIsOwner] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  
+  useEffect(() => {
+    if (user) {
+      // Check if the user is the owner (created the document)
+      setIsOwner(user.primaryEmailAddress?.emailAddress === metadata.email);
+      
+      // For simplicity, assume all users can edit (you might have more complex logic)
+      setCanEdit(true);
+    }
+  }, [user, metadata]);
 
   return (
     <div className="group relative rounded-lg bg-dark-200 p-5 shadow-md transition-all hover:bg-dark-300 hover:shadow-xl">
@@ -41,11 +57,28 @@ const DocumentCard = ({ document }: DocumentCardProps) => {
           <div className="size-6 rounded-full bg-dark-500 ring-2 ring-dark-200" />
         </div>
         
-        <div className="flex items-center">
+        {/* Desktop actions */}
+        <div className="hidden md:flex items-center">
           <button className="rounded-full p-1.5 text-gray-400 hover:bg-dark-400 hover:text-white">
             <MoreHorizontal className="h-4 w-4" />
           </button>
-          <DeleteModal roomId={id} />
+          {isOwner && <DeleteModal roomId={id} />}
+        </div>
+        
+        {/* Mobile actions */}
+        <div className="md:hidden flex items-center">
+          <MobileActionMenu
+            document={{ 
+              id, 
+              metadata: { 
+                title: metadata.title, 
+                email: metadata.email 
+              }, 
+              createdAt 
+            }}
+            isOwner={isOwner}
+            canEdit={canEdit}
+          />
         </div>
       </div>
     </div>

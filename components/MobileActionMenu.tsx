@@ -85,17 +85,18 @@ export function MobileActionMenu({ document, isOwner, canEdit }: MobileActionMen
       {/* Action Menu Trigger */}
       <button 
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex h-10 w-10 items-center justify-center rounded-md border border-dark-400 bg-dark-300 text-gray-400 hover:bg-dark-400 hover:text-white"
+        className={`flex h-10 w-10 items-center justify-center rounded-md border border-dark-400 ${isOwner ? 'bg-dark-300 hover:bg-dark-400' : 'bg-dark-300'} text-gray-400 hover:text-white relative`}
         aria-label="Document actions"
       >
         <MoreVertical className="h-5 w-5" />
+
       </button>
 
       {/* Action Menu */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:hidden" onClick={() => setIsMenuOpen(false)}>
           <div 
-            className="fixed bottom-0 w-full max-w-lg rounded-t-xl bg-dark-200 border-t border-x border-dark-400 p-3 pb-8 animate-in slide-in-from-bottom duration-300"
+            className="fixed bottom-[calc(4rem)] w-full max-w-lg rounded-xl bg-dark-200 border border-dark-400 p-3 pb-5 animate-in slide-in-from-bottom duration-300 max-h-[70vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-dark-400"></div>
@@ -136,7 +137,7 @@ export function MobileActionMenu({ document, isOwner, canEdit }: MobileActionMen
               
               {isOwner && (
                 <button 
-                  className="flex items-center gap-3 px-4 py-3 text-red-400 rounded-md hover:bg-dark-300 text-left"
+                  className="flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 rounded-md bg-red-900/10 hover:bg-red-900/20 text-left"
                   onClick={() => {
                     setIsMenuOpen(false);
                     setIsDeleteOpen(true);
@@ -154,7 +155,7 @@ export function MobileActionMenu({ document, isOwner, canEdit }: MobileActionMen
       {/* Rename Dialog - only shown for users with edit permission */}
       {canEdit && (
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="bg-dark-200 border border-dark-400 max-w-[calc(100%-32px)] p-6 rounded-lg">
+          <DialogContent className="bg-dark-200 border border-dark-400 max-w-[calc(100%-32px)] p-6 rounded-lg mb-20 sm:mb-0">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-xl font-medium text-white">Rename Document</DialogTitle>
             </DialogHeader>
@@ -194,7 +195,7 @@ export function MobileActionMenu({ document, isOwner, canEdit }: MobileActionMen
       {/* Delete Dialog - only shown for owners */}
       {isOwner && (
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <DialogContent className="bg-dark-200 border border-dark-400 max-w-[calc(100%-32px)] p-6 rounded-lg">
+          <DialogContent className="bg-dark-200 border border-dark-400 max-w-[calc(100%-32px)] p-6 rounded-lg mb-20 sm:mb-0">
             <DialogHeader className="flex flex-col items-center text-center">
               <div className="bg-red-500/10 rounded-full p-3 mb-2">
                 <Trash2 className="h-6 w-6 text-red-500" />

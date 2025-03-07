@@ -8,13 +8,18 @@ interface ResponsiveLayoutProps {
 
 /**
  * Responsive layout wrapper
- * With our new responsive approach, we don't need separate components
- * Each page handles its own responsive behavior
+ * Ensures proper spacing for mobile navigation
  */
 export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
   return (
-    <div className="w-full h-full">
-      {children}
+    <div className="w-full h-full min-h-screen relative">
+      {/* Main content area with proper bottom padding on mobile */}
+      <div className="w-full pb-safe">
+        {children}
+      </div>
+      
+      {/* Extra space to ensure content doesn't scroll behind the navbar on mobile */}
+      <div className="h-20 md:h-0 w-full" />
     </div>
   );
 }
