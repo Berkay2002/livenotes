@@ -12,11 +12,20 @@ import { updateDocument } from '@/lib/actions/room.actions';
 import Loader from './Loader';
 import ShareModal from './ShareModal';
 import Notifications from './Notifications';
+import { ChevronLeft, MessageSquare, Send, X } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Share2 } from 'lucide-react';
+import { Thread } from '@liveblocks/react-ui';
+import { LiveblocksPlugin } from '@liveblocks/react-lexical';
+import { ThreadData } from '@liveblocks/client';
 
 const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: CollaborativeRoomProps) => {
   const [documentTitle, setDocumentTitle] = useState(roomMetadata.title);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,25 +76,60 @@ const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: Col
     <RoomProvider id={roomId}>
       <ClientSideSuspense fallback={<Loader />}>
         <div className="collaborative-room">
-          <Header className="sticky left-0 top-0 z-10 border-b border-dark-400 py-2 md:py-4 flex items-center px-2 md:px-6 bg-dark-200 shadow-sm">
-            {/* Mobile: Back button and simple title */}
-            <div className="flex md:hidden items-center gap-2">
-              <a href="/" className="p-2 text-white">
-                <Image
-                  src="/assets/icons/arrow-clockwise.svg"
-                  alt="back"
-                  width={20}
-                  height={20}
-                  className="rotate-180"
-                />
-              </a>
-              <div className="flex flex-col">
-                <h1 className="text-white font-medium truncate max-w-[170px]">
+          <Header className="sticky left-0 top-0 z-10 border-b border-dark-400 py-2.5 md:py-4 flex items-center px-2 md:px-6 bg-dark-200 shadow-sm">
+            {/* Mobile header layout */}
+            <div className="w-full md:hidden flex items-center justify-between">
+              {/* Left side: Back button and avatar - widened for symmetry */}
+              <div className="flex items-center space-x-2">
+                <Link href="/">
+                  <button 
+                    className="flex h-9 w-9 items-center justify-center rounded-md border border-dark-400 bg-dark-300 text-gray-400 hover:bg-dark-400 hover:text-white"
+                    aria-label="Go back"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                </Link>
+                
+                <div className="flex h-9 w-9 items-center justify-center">
+                  <SignedIn>
+                    <UserButton afterSignOutUrl="/" />
+                  </SignedIn>
+                </div>
+              </div>
+              
+              {/* Middle: Document title - shows when there's enough space */}
+              <div className="hidden xs:block absolute left-1/2 transform -translate-x-1/2 max-w-[40%]">
+                <h1 className="text-white text-sm font-medium truncate text-center">
                   {documentTitle || "Untitled Document"}
                 </h1>
-                <p className="text-xs text-gray-400">
-                  {currentUserType === 'editor' ? 'Can edit' : 'View only'}
-                </p>
+              </div>
+              
+              {/* Right side: Active collaborators, Share, and Comment buttons - widened for symmetry */}
+              <div className="flex items-center space-x-3">
+                {/* ActiveCollaborators container - sized to match header height */}
+                <div className="h-9 flex items-center justify-center">
+                  <ActiveCollaborators />
+                </div>
+                
+                <button 
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-dark-400 bg-dark-300 text-gray-400 hover:bg-dark-400 hover:text-white"
+                  aria-label="Share document"
+                >
+                  <ShareModal 
+                    roomId={roomId}
+                    collaborators={users}
+                    creatorId={roomMetadata.creatorId}
+                    currentUserType={currentUserType}
+                  />
+                </button>
+                
+                <button 
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-dark-400 bg-dark-300 text-gray-400 hover:bg-dark-400 hover:text-white"
+                  aria-label="Comments"
+                  onClick={() => setIsCommentOpen(true)}
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </button>
               </div>
             </div>
             
@@ -137,10 +181,14 @@ const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: Col
               </div>
             </div>
             
-            {/* Desktop: Notifications and User button - right side */}
-            <div className="flex items-center justify-end md:w-48 w-10 gap-6 pr-0 md:pr-2">
-              <div className="hidden md:flex items-center space-x-3">
-                {/* Share button - desktop only */}
+            {/* Desktop: Right side actions - Increased width for proper icon sizing */}
+            <div className="hidden md:flex items-center justify-end w-60 gap-3 pr-2">
+              <div className="flex items-center space-x-4">
+                {/* ActiveCollaborators container - properly sized for desktop */}
+                <div className="h-9 flex items-center justify-center">
+                  <ActiveCollaborators />
+                </div>
+                
                 <ShareModal 
                   roomId={roomId}
                   collaborators={users}
@@ -148,35 +196,24 @@ const CollaborativeRoom = ({ roomId, roomMetadata, users, currentUserType }: Col
                   currentUserType={currentUserType}
                 />
                 
-                {/* Active collaborators - desktop only */}
-                <ActiveCollaborators />
-              
-                {/* Notifications - desktop only */}
-                <Notifications className="h-6 md:h-7 w-6 md:w-7" />
-              </div>
-
-              {/* Mobile: Share button */}
-              <div className="md:hidden flex items-center">
-                <ShareModal 
-                  roomId={roomId}
-                  collaborators={users}
-                  creatorId={roomMetadata.creatorId}
-                  currentUserType={currentUserType}
-                />
-              </div>
-
-              {/* UserButton for all screen sizes */}
-              <div className="block">
-                <div className="transform scale-125">
-                  <SignedIn>
-                    <UserButton afterSignOutUrl="/" />
-                  </SignedIn>
+                <div className="flex items-center justify-center">
+                  <Notifications className="h-7 md:h-8 w-7 md:w-8" />
                 </div>
+                
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
               </div>
             </div>
           </Header>
           
-          <Editor roomId={roomId} currentUserType={currentUserType} />
+          {/* Editor handles comments via the Comments component */}
+          <Editor 
+            roomId={roomId} 
+            currentUserType={currentUserType}
+            isCommentOpen={isCommentOpen}
+            setIsCommentOpen={setIsCommentOpen}
+          />
         </div>
       </ClientSideSuspense>
     </RoomProvider>

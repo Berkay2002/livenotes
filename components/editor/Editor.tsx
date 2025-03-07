@@ -9,7 +9,7 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import React from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 
 import { FloatingComposer, FloatingThreads, liveblocksConfig, LiveblocksPlugin, useEditorStatus } from '@liveblocks/react-lexical'
 import Loader from '../Loader';
@@ -27,10 +27,20 @@ function Placeholder() {
   return <div className="editor-placeholder">Enter some rich text...</div>;
 }
 
-export function Editor({ roomId, currentUserType }: { roomId: string, currentUserType: UserType }) {
+export function Editor({ 
+  roomId, 
+  currentUserType,
+  isCommentOpen,
+  setIsCommentOpen
+}: { 
+  roomId: string, 
+  currentUserType: UserType,
+  isCommentOpen: boolean,
+  setIsCommentOpen: Dispatch<SetStateAction<boolean>>
+}) {
   const status = useEditorStatus();
   const { threads } = useThreads();
-
+  
   const initialConfig = liveblocksConfig({
     namespace: 'Editor',
     nodes: [HeadingNode],
@@ -67,14 +77,15 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
             </div>
           )}
 
-          {/* Comments System - Hide on mobile (we'll use a separate mobile comments UI) */}
-          <div className="hidden md:block">
-            <LiveblocksPlugin>
-              <FloatingComposer className="w-[350px]" />
-              <FloatingThreads threads={threads} />
-              <Comments />
-            </LiveblocksPlugin>
-          </div>
+          {/* Comments System - Available on both desktop and mobile */}
+          <LiveblocksPlugin>
+            <FloatingComposer className="w-[350px]" />
+            <FloatingThreads threads={threads} />
+            <Comments 
+              isMobileOpen={isCommentOpen}
+              onMobileClose={() => setIsCommentOpen(false)}
+            />
+          </LiveblocksPlugin>
         </div>
       </div>
     </LexicalComposer>
