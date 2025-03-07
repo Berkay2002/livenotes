@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { UserButton } from '@clerk/nextjs';
 import { 
   FileText, 
   Users, 
@@ -165,13 +166,18 @@ export const Sidebar = ({ isOpen, onClose, email }: SidebarProps) => {
             </div>
           </nav>
           
-          {/* User section */}
+          {/* User section with Clerk UserButton */}
           <div className="p-4 border-t border-dark-400">
             <div className="flex items-center px-4 py-3 rounded-md bg-dark-300">
-              <div className="size-8 rounded-full bg-accent-primary/20 flex items-center justify-center mr-3">
-                <span className="text-accent-primary font-medium">
-                  {email ? email.charAt(0).toUpperCase() : "U"}
-                </span>
+              <div className="flex-shrink-0 mr-3">
+                <UserButton 
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "size-8"
+                    }
+                  }}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">

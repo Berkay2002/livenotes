@@ -12,7 +12,8 @@ import { dateConverter } from '@/lib/utils';
 import { DeleteModal } from '@/components/DeleteModal';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DocumentsTable } from '@/components/DocumentsTable';
+import { DocumentTableEnhanced } from '@/components/DocumentTableEnhanced';
+import { FileText, FilePlus } from 'lucide-react';
 
 // Define interface for document type
 interface Document {
@@ -33,21 +34,18 @@ const DocumentsSection = async ({ email }: { email: string }) => {
   return (
     <>
       {documents.length > 0 ? (
-        <DocumentsTable documents={documents} userEmail={email} />
+        <DocumentTableEnhanced documents={documents} userEmail={email} />
       ) : (
         <div className="mt-16 flex flex-col items-center justify-center">
-          <Image
-            src="/assets/images/empty-documents.png"
-            alt="No documents found"
-            width={270}
-            height={200}
-            className="object-contain"
-            priority={true}
-            loading="eager"
-          />
-          <h3 className="text-center text-lg font-bold text-white">
-            Create your first document
+          <div className="flex items-center justify-center w-32 h-32 rounded-full bg-dark-300 mb-6">
+            <FilePlus className="text-gray-400" size={64} />
+          </div>
+          <h3 className="text-center text-xl font-bold text-white mb-2">
+            No documents yet
           </h3>
+          <p className="text-center text-gray-400 max-w-md">
+            Create your first document to get started with collaborative editing
+          </p>
         </div>
       )}
     </>
