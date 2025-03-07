@@ -84,7 +84,14 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('tailwindcss-displaymodes')({
+      standalone: {
+        acceptValues: ['standalone', 'fullscreen', 'minimal-ui'],
+      },
+    }),
+  ],
 } satisfies Config;
 
 export default config;

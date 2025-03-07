@@ -305,3 +305,7 @@
 .lb-elevation {
   background: #0f1c34;
 }
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
