@@ -47,11 +47,13 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
     
     try {
       // Get the user's email - prefer the prop if provided
-      const email = propEmail || (user?.emailAddresses[0].emailAddress);
+      const email = propEmail || (user?.primaryEmailAddress?.emailAddress);
       
       if (!email) {
         throw new Error('No email available');
       }
+      
+      console.log('Fetching documents for email:', email);
       
       // Fetch documents from your API
       const response = await fetch(`/api/documents?email=${encodeURIComponent(email)}`);
@@ -61,10 +63,14 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
       }
       
       const data = await response.json();
+      console.log('Documents fetched:', data);
+      
       setDocuments(data.data || []);
       
       // Fetch collaborator information for each document
-      await Promise.all(data.data.map(fetchCollaboratorsForDoc));
+      if (data.data && data.data.length > 0) {
+        await Promise.all(data.data.map(fetchCollaboratorsForDoc));
+      }
       
     } catch (err) {
       console.error('Error fetching documents:', err);
@@ -118,7 +124,13 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
     
     try {
       const userId = user.id;
-      const email = user.emailAddresses[0].emailAddress;
+      const email = user.primaryEmailAddress?.emailAddress;
+      
+      if (!email) {
+        throw new Error('No email available');
+      }
+      
+      console.log('Creating document for:', { userId, email });
       
       const response = await fetch('/api/documents', {
         method: 'POST',
@@ -133,6 +145,7 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
       }
       
       const newDoc = await response.json();
+      console.log('Document created:', newDoc);
       
       // Navigate to the new document
       onOpenDoc(newDoc.id);
@@ -172,14 +185,14 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-white">My Documents</h2>
+    <div className="p-4 pwa-scroll overflow-y-auto h-full bg-white">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-800">My Documents</h2>
         
         <button
           onClick={createDocument}
           disabled={isCreatingDoc}
-          className="flex items-center justify-center gap-2 bg-accent-primary text-white px-4 py-2 rounded-lg shadow-md"
+          className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md pwa-tap-target"
         >
           {isCreatingDoc ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -192,111 +205,101 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ onOpenDoc, email: propEma
       
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-10 h-10 text-accent-primary animate-spin mb-4" />
-          <p className="text-gray-400">Loading documents...</p>
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
+          <p className="text-gray-500">Loading documents...</p>
         </div>
       ) : error ? (
-        <div className="bg-dark-200 rounded-lg p-6 text-center">
-          <p className="text-red-400 mb-4">{error}</p>
+        <div className="bg-gray-100 rounded-lg p-6 text-center my-4">
+          <p className="text-red-500 mb-4">{error}</p>
           <button 
             onClick={fetchDocuments}
-            className="bg-dark-300 text-white px-4 py-2 rounded-lg hover:bg-dark-400"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 pwa-tap-target"
           >
             Try Again
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-4">
           {documents.length > 0 ? (
             documents.map(doc => (
               <div 
                 key={doc.id}
-                className="bg-dark-200 rounded-lg p-4 shadow-md"
+                className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 pwa-tap-target"
                 onClick={() => onOpenDoc(doc.id)}
               >
-                <div className="flex items-center justify-center h-32 mb-3 bg-dark-100/70 rounded">
-                  <FileText size={32} className="text-gray-400" />
-                </div>
-                <h3 className="text-white font-medium mb-1 truncate">
-                  {doc.metadata.title || 'Untitled Document'}
-                </h3>
-                <p className="text-gray-400 text-sm">
-                  Edited {dateConverter(doc.createdAt)}
-                </p>
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex -space-x-2">
-                    {collaborators[doc.id]?.slice(0, 3).map((collaborator, index) => (
-                      <div 
-                        key={`${doc.id}-collab-${index}`}
-                        className="w-6 h-6 rounded-full ring-2 ring-dark-200 flex items-center justify-center text-xs font-medium overflow-hidden"
-                        style={{ backgroundColor: collaborator.color }}
-                        title={collaborator.name}
-                      >
-                        {collaborator.avatar ? (
-                          <Image 
-                            src={collaborator.avatar} 
-                            alt={collaborator.name}
-                            width={24}
-                            height={24}
-                            className="object-cover"
-                          />
-                        ) : (
-                          collaborator.name.substring(0, 2).toUpperCase()
-                        )}
-                      </div>
-                    ))}
-                    {Object.keys(doc.usersAccesses).length > 3 && (
-                      <div className="w-6 h-6 rounded-full bg-dark-400 ring-2 ring-dark-200 flex items-center justify-center text-xs text-white">
-                        +{Object.keys(doc.usersAccesses).length - 3}
-                      </div>
-                    )}
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 p-2 bg-indigo-100 rounded-lg">
+                    <FileText size={24} className="text-indigo-600" />
                   </div>
-                  <button 
-                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-300"
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 mb-1 truncate">
+                      {doc.metadata.title || 'Untitled Document'}
+                    </h3>
+                    <p className="text-gray-500 text-sm">
+                      Edited {dateConverter(doc.createdAt)}
+                    </p>
+                    
+                    <div className="flex items-center mt-2">
+                      <div className="flex -space-x-2 mr-2">
+                        {collaborators[doc.id]?.slice(0, 3).map((collaborator, index) => (
+                          <div 
+                            key={`${doc.id}-collab-${index}`}
+                            className="w-6 h-6 rounded-full ring-1 ring-white flex items-center justify-center text-xs font-medium overflow-hidden"
+                            style={{ backgroundColor: collaborator.color }}
+                            title={collaborator.name}
+                          >
+                            {collaborator.avatar ? (
+                              <Image 
+                                src={collaborator.avatar} 
+                                alt={collaborator.name}
+                                width={24}
+                                height={24}
+                                className="object-cover"
+                              />
+                            ) : (
+                              collaborator.name.substring(0, 2).toUpperCase()
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {Object.keys(doc.usersAccesses).length > 3 && (
+                        <span className="text-xs text-gray-500">
+                          +{Object.keys(doc.usersAccesses).length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <button
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Add document options menu here
+                      // Add document options handling here (delete, share, etc.)
+                      alert(`Options for: ${doc.metadata.title || 'Untitled Document'}`);
                     }}
                   >
-                    <MoreVertical size={16} className="text-gray-400" />
+                    <MoreVertical size={18} />
                   </button>
                 </div>
               </div>
             ))
           ) : (
-            <div className="bg-dark-200 rounded-lg p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-dark-300 flex items-center justify-center mx-auto mb-4">
-                <FileText size={32} className="text-accent-primary" />
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <div className="flex justify-center mb-4">
+                <FileText size={48} className="text-gray-300" />
               </div>
-              <h3 className="text-white font-medium text-lg mb-2">No documents yet</h3>
-              <p className="text-gray-400 mb-6">Create your first document to get started</p>
+              <h3 className="text-gray-700 font-medium mb-2">No documents yet</h3>
+              <p className="text-gray-500 text-sm mb-4">Create your first document to get started</p>
+              <button
+                onClick={createDocument}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg pwa-tap-target"
+              >
+                Create Document
+              </button>
             </div>
           )}
-          
-          <div className="bg-dark-200 rounded-lg p-4 border-2 border-dashed border-dark-400 flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-full bg-dark-300 flex items-center justify-center mb-3">
-              <Plus size={24} className="text-accent-primary" />
-            </div>
-            <h3 className="text-white font-medium text-center">Create New Document</h3>
-            <p className="text-gray-400 text-sm text-center mt-1 mb-3">Start with a blank page</p>
-            <button 
-              className="bg-accent-primary hover:bg-accent-hover text-white rounded-lg px-4 py-2 flex items-center gap-2 disabled:opacity-70"
-              onClick={createDocument}
-              disabled={isCreatingDoc}
-            >
-              {isCreatingDoc ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Creating...</span>
-                </>
-              ) : (
-                <>
-                  <Plus size={18} />
-                  <span>New Document</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       )}
     </div>

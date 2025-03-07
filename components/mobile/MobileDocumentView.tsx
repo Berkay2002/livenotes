@@ -49,11 +49,41 @@ const MobileDocumentView: React.FC = () => {
     setCurrentDocId(undefined);
   };
 
+  // Get user email safely
+  const userEmail = isLoaded ? user?.primaryEmailAddress?.emailAddress : undefined;
+  
+  useEffect(() => {
+    // Debugging log to ensure user data is available
+    if (isLoaded) {
+      console.log('User data loaded:', {
+        hasUser: !!user,
+        email: userEmail,
+      });
+    }
+  }, [isLoaded, user, userEmail]);
+
   // Render loading state while user data is loading
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen w-screen">
         <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
+      </div>
+    );
+  }
+
+  // Ensure we have a user
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen bg-white">
+        <div className="text-center p-6">
+          <p className="text-red-500 mb-4">Please sign in to access your documents</p>
+          <a 
+            href="/sign-in" 
+            className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg"
+          >
+            Sign In
+          </a>
+        </div>
       </div>
     );
   }
@@ -89,7 +119,7 @@ const MobileDocumentView: React.FC = () => {
             {activeView === 'home' ? (
               <DocumentsList 
                 onOpenDoc={handleOpenDocument}
-                email={user?.primaryEmailAddress?.emailAddress}
+                email={userEmail}
               />
             ) : (
               <DocumentEditor 
