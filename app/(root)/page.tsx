@@ -13,6 +13,13 @@ import { dateConverter } from '@/lib/utils';
 import { DeleteModal } from '@/components/DeleteModal';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import dynamic from 'next/dynamic';
+
+// Dynamic import with no SSR to avoid hydration issues
+const MobileDocumentView = dynamic(
+  () => import('../../components/mobile/MobileDocumentView'),
+  { ssr: false }
+);
 
 // Define interface for document type
 interface Document {
@@ -134,6 +141,17 @@ const DocumentsSkeleton = () => (
   </div>
 );
 
+// Mobile view with client-side detection
+const MobileViewWrapper = () => {
+  return (
+    <div className="md:hidden">
+      <Suspense fallback={<Skeleton className="h-screen w-full" />}>
+        <MobileDocumentView />
+      </Suspense>
+    </div>
+  );
+};
+
 const Home = async () => {
   const clerkUser = await currentUser();
   if (!clerkUser) redirect('/sign-in');
@@ -146,25 +164,31 @@ const Home = async () => {
       <HeaderSection email={email} />
       
       <div className="container mx-auto py-8">
-        {/* Mobile search - loaded second */}
-        <Suspense fallback={<Skeleton className="h-12 w-full max-w-md" />}>
-          <MobileSearchSection email={email} />
-        </Suspense>
+        {/* Mobile view - client-side rendered */}
+        <MobileViewWrapper />
 
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">My Documents</h1>
-          <AddDocumentBtn 
-            userId={clerkUser.id}
-            email={email}
-          />
-        </div>
-
-        {/* Documents section with streaming - loaded last */}
-        <section className="mt-8">
-          <Suspense fallback={<DocumentsSkeleton />}>
-            <DocumentsSection email={email} />
+        {/* Desktop view - only shown on larger screens */}
+        <div className="hidden md:block">
+          {/* Mobile search - loaded second */}
+          <Suspense fallback={<Skeleton className="h-12 w-full max-w-md" />}>
+            <MobileSearchSection email={email} />
           </Suspense>
-        </section>
+
+          <div className="mb-8 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-white">My Documents</h1>
+            <AddDocumentBtn 
+              userId={clerkUser.id}
+              email={email}
+            />
+          </div>
+
+          {/* Documents section with streaming - loaded last */}
+          <section className="mt-8">
+            <Suspense fallback={<DocumentsSkeleton />}>
+              <DocumentsSection email={email} />
+            </Suspense>
+          </section>
+        </div>
       </div>
     </main>
   );
