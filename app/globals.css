@@ -168,6 +168,38 @@
   .collaborative-room {
     @apply flex size-full max-h-screen flex-1 flex-col items-center overflow-hidden;
   }
+
+  /* PWA-specific styles */
+  .pwa-standalone-mode {
+    /* Prevent overscroll effects */
+    overscroll-behavior: none;
+    /* Prevent text selection for a more app-like feel */
+    user-select: none;
+    /* Optimize touch targets for mobile */
+    touch-action: manipulation;
+  }
+
+  /* PWA-optimized scrolling */
+  .pwa-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+  }
+
+  /* Optimize tap targets for mobile */
+  .pwa-tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Safe area insets for PWA on iOS */
+  .pwa-safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  
+  .pwa-safe-area-top {
+    padding-top: env(safe-area-inset-top, 16px);
+  }
 }
 
 /* ======================== Clerk Override */
@@ -308,4 +340,44 @@
 
 body {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Add display mode media queries at the end of the file */
+
+/* Display mode specific styles using native CSS instead of tailwindcss-displaymodes */
+@media all and (display-mode: standalone), 
+       all and (display-mode: fullscreen),
+       all and (display-mode: minimal-ui) {
+  /* Styles that only apply in PWA standalone mode */
+  .pwa-only {
+    display: block;
+  }
+  
+  .browser-only {
+    display: none;
+  }
+  
+  .pwa-standalone-padding-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  
+  /* Additional PWA specific styles */
+  body, html {
+    overscroll-behavior: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+}
+
+@media not all and (display-mode: standalone) and 
+       not all and (display-mode: fullscreen) and
+       not all and (display-mode: minimal-ui) {
+  /* Styles that only apply in browser mode */
+  .pwa-only {
+    display: none;
+  }
+  
+  .browser-only {
+    display: block;
+  }
 }

@@ -8,10 +8,14 @@ import MobileSideMenu from './MobileSideMenu';
 import DocumentsList from './DocumentsList';
 import DocumentEditor from './DocumentEditor';
 import MobileNavBar from './MobileNavBar';
+import PwaNavBar from '../pwa/PwaNavBar';
+import PwaEnhancedLayout from '../pwa/PwaEnhancedLayout';
 import { Loader2 } from 'lucide-react';
+import { useStandaloneMode } from '../StandaloneDetector';
 
 const MobileDocumentView: React.FC = () => {
   const { user, isLoaded } = useUser();
+  const { isStandalone } = useStandaloneMode();
   const [activeView, setActiveView] = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -29,76 +33,98 @@ const MobileDocumentView: React.FC = () => {
 
   // Handler for opening a document
   const handleOpenDocument = (docId?: string) => {
-    if (docId) {
-      setCurrentDocId(docId);
-      setActiveView('document');
-    }
+    setCurrentDocId(docId);
+    setActiveView('document');
   };
-  
+
+  // Create a new document
+  const handleCreateDocument = () => {
+    setCurrentDocId(undefined);
+    setActiveView('document');
+  };
+
+  // Back to home view
+  const handleBackToHome = () => {
+    setActiveView('home');
+    setCurrentDocId(undefined);
+  };
+
+  // Render loading state while user data is loading
   if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center h-screen bg-dark-100">
-        <Loader2 className="w-10 h-10 text-accent-primary animate-spin" />
+      <div className="flex items-center justify-center h-screen w-screen">
+        <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-dark-100">
-        <p className="text-white">Please sign in to view your documents.</p>
-      </div>
-    );
-  }
-
-  const email = user.emailAddresses[0].emailAddress;
-  
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] bg-dark-100 overflow-hidden rounded-xl shadow-lg">
-      {/* Mobile App Header */}
-      <MobileHeader 
-        activeView={activeView}
-        openMenu={() => setMenuOpen(true)}
-        openSearch={() => setSearchOpen(true)}
-        goBack={() => setActiveView('home')}
-        openComments={handleOpenComments}
-      />
-      
-      {/* Mobile Search Overlay */}
-      {searchOpen && (
-        <MobileSearch 
-          onClose={() => setSearchOpen(false)} 
-        />
-      )}
-      
-      {/* Mobile Side Menu */}
-      {menuOpen && (
-        <MobileSideMenu 
-          onClose={() => setMenuOpen(false)}
-        />
-      )}
-      
-      {/* Main Content Area - Increase bottom padding for nav bar */}
-      <main className="flex-1 overflow-auto pb-20">
-        {activeView === 'home' && (
-          <DocumentsList 
-            onOpenDoc={handleOpenDocument} 
-            email={email}
+    <PwaEnhancedLayout>
+      <div className="h-screen w-screen overflow-hidden relative">
+        {/* Side menu (shown when menuOpen is true) */}
+        {menuOpen && (
+          <MobileSideMenu onClose={() => setMenuOpen(false)} />
+        )}
+        
+        {/* Search overlay (shown when searchOpen is true) */}
+        {searchOpen && (
+          <MobileSearch
+            onClose={() => setSearchOpen(false)}
           />
         )}
-        {activeView === 'document' && (
-          <DocumentEditor 
-            ref={editorRef}
+        
+        {/* Main view container */}
+        <div className="flex flex-col h-full">
+          {/* Dynamic header based on active view */}
+          <MobileHeader 
+            activeView={activeView}
+            openMenu={() => setMenuOpen(true)}
+            openSearch={() => setSearchOpen(true)}
+            goBack={handleBackToHome}
+            openComments={handleOpenComments}
           />
-        )}
-      </main>
-      
-      {/* Bottom Navigation Bar */}
-      <MobileNavBar 
-        activeView={activeView}
-        onChange={setActiveView}
-      />
-    </div>
+          
+          {/* Main content area */}
+          <div className="flex-1 overflow-hidden">
+            {activeView === 'home' ? (
+              <DocumentsList 
+                onOpenDoc={handleOpenDocument}
+                email={user?.primaryEmailAddress?.emailAddress}
+              />
+            ) : (
+              <DocumentEditor 
+                ref={editorRef}
+              />
+            )}
+          </div>
+
+          {/* Standard navigation - only visible in browser mode */}
+          <div className="browser-only">
+            <MobileNavBar 
+              activeView={activeView}
+              onChange={(view) => {
+                if (view === 'document') {
+                  handleCreateDocument();
+                } else {
+                  setActiveView(view);
+                }
+              }}
+            />
+          </div>
+
+          {/* Enhanced PWA navigation - only visible in standalone mode */}
+          <div className="pwa-only">
+            <PwaNavBar 
+              activeView={activeView}
+              onChangeView={setActiveView}
+              onOpenMenu={() => setMenuOpen(true)}
+              onOpenSearch={() => setSearchOpen(true)}
+              onCreateDocument={handleCreateDocument}
+            />
+          </div>
+        </div>
+      </div>
+    </PwaEnhancedLayout>
   );
 };
 

@@ -8,6 +8,7 @@ import { dark } from "@clerk/themes"
 import Provider from "./Provider"
 import { PerformanceOptimizer } from "@/components/PerformanceOptimizer"
 import ResponsiveLayout from "@/components/ui/ResponsiveLayout"
+import { Analytics } from "@vercel/analytics/react"
 
 const fontSans = FontSans({
   subsets: ["latin"],
