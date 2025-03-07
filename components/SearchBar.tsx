@@ -22,8 +22,26 @@ const SearchBar = ({ email, placeholder = "Search documents" }: SearchBarProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DocumentData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchBarWidth, setSearchBarWidth] = useState(0);
   const debouncedValue = useDebounce(searchQuery, 300);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+
+  // Update search bar width for popup
+  useEffect(() => {
+    const updateWidth = () => {
+      if (searchBarRef.current) {
+        setSearchBarWidth(searchBarRef.current.offsetWidth);
+      }
+    };
+    
+    // Initial update
+    updateWidth();
+    
+    // Update on resize
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   useEffect(() => {
     const handleSearch = async () => {
@@ -64,7 +82,7 @@ const SearchBar = ({ email, placeholder = "Search documents" }: SearchBarProps) 
   return (
     <Popover open={isOpen && searchResults.length > 0} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div className="relative w-64">
+        <div ref={searchBarRef} className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input 
             ref={inputRef}
@@ -77,6 +95,7 @@ const SearchBar = ({ email, placeholder = "Search documents" }: SearchBarProps) 
           {searchQuery && (
             <button 
               onClick={handleClear}
+              aria-label="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-dark-400 hover:text-white"
             >
               <X className="h-4 w-4" />
@@ -90,8 +109,10 @@ const SearchBar = ({ email, placeholder = "Search documents" }: SearchBarProps) 
         </div>
       </PopoverTrigger>
       <PopoverContent 
+        className="p-0 bg-dark-200 border border-dark-400 shadow-lg rounded-xl overflow-hidden" 
+        style={{ width: `${searchBarWidth}px` }}
         align="start" 
-        className="w-80 p-0 bg-dark-200 border border-dark-400 shadow-lg"
+        sideOffset={4}
       >
         <div className="text-xs font-medium text-gray-400 p-2 border-b border-dark-400">
           {searchResults.length === 0

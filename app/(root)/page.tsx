@@ -6,7 +6,7 @@ import Header from '@/components/Header'
 import Notifications from '@/components/Notifications';
 import SearchBar from '@/components/SearchBar';
 import AddDocumentBtn from '@/components/AddDocumentBtn';
-import { Clock, FileText, Plus } from 'lucide-react';
+import { Clock, FileText, Plus, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { dateConverter } from '@/lib/utils';
@@ -23,40 +23,6 @@ interface Document {
   createdAt: string;
 }
 
-// Header section - critical to load fast
-function HeaderSection({ email }: { email: string }) {
-  return (
-    <Header className="sticky left-0 top-0 z-10 border-b border-dark-400">
-      <div className="flex flex-1 items-center">
-        <div className="relative ml-4 hidden md:block">
-          <SearchBar 
-            email={email} 
-            placeholder="Search documents" 
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-3 lg:gap-4">
-        <Notifications />
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-    </Header>
-  );
-}
-
-// Mobile search section - slightly less critical
-function MobileSearchSection({ email }: { email: string }) {
-  return (
-    <div className="mb-6 block md:hidden">
-      <SearchBar 
-        email={email} 
-        placeholder="Search documents" 
-      />
-    </div>
-  );
-}
-
 // Separate component for documents section to enable streaming
 const DocumentsSection = async ({ email }: { email: string }) => {
   // This will be streamed in after the initial HTML is sent
@@ -68,37 +34,39 @@ const DocumentsSection = async ({ email }: { email: string }) => {
       {documents.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {documents.map((document: Document, index: number) => (
-            <div key={document.id} className="group relative rounded-lg bg-dark-200 p-5 shadow-md transition-all hover:bg-dark-300 hover:shadow-xl">
-              <div className="mb-4 flex h-36 items-center justify-center rounded bg-dark-100/70">
-                <Image 
-                  src="/assets/icons/doc.svg"
-                  alt="file"
-                  width={40}
-                  height={40}
-                  className="opacity-70"
-                  priority={index < 4}
-                  loading={index < 4 ? "eager" : "lazy"}
-                />
-              </div>
-
-              <Link href={`/documents/${document.id}`} className="block">
-                <h3 className="mb-1 line-clamp-1 text-lg font-medium text-white group-hover:text-accent-primary">{document.metadata.title}</h3>
-                <p className="mb-3 text-sm font-light text-gray-400">
-                  Edited {dateConverter(document.createdAt.toString())}
-                </p>
-              </Link>
-
-              <div className="flex items-center justify-between">
-                <div className="flex -space-x-2">
-                  <div className="size-6 rounded-full bg-accent-primary ring-2 ring-dark-200" />
-                  <div className="size-6 rounded-full bg-dark-500 ring-2 ring-dark-200" />
+            <Link href={`/documents/${document.id}`} key={document.id} className="block">
+              <div className="group relative rounded-lg bg-dark-200 p-5 shadow-md transition-all hover:bg-dark-300 hover:shadow-xl">
+                <div className="mb-4 flex h-36 items-center justify-center rounded bg-dark-100/70">
+                  <Image 
+                    src="/assets/icons/doc.svg"
+                    alt="file"
+                    width={40}
+                    height={40}
+                    className="opacity-70"
+                    priority={index < 4}
+                    loading={index < 4 ? "eager" : "lazy"}
+                  />
                 </div>
-                
-                <div className="flex items-center">
-                  <DeleteModal roomId={document.id} />
+
+                <div>
+                  <h3 className="mb-1 line-clamp-1 text-lg font-medium text-white group-hover:text-accent-primary">{document.metadata.title}</h3>
+                  <p className="mb-3 text-sm font-light text-gray-400">
+                    Edited {dateConverter(document.createdAt.toString())}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex -space-x-2">
+                    <div className="size-6 rounded-full bg-accent-primary ring-2 ring-dark-200" />
+                    <div className="size-6 rounded-full bg-dark-500 ring-2 ring-dark-200" />
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <DeleteModal roomId={document.id} />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -142,29 +110,66 @@ const Home = async () => {
 
   return (
     <main className="min-h-screen bg-dark-100">
-      {/* Priority content - header loads first */}
-      <HeaderSection email={email} />
+      {/* Responsive Header */}
+      <Header className="sticky left-0 top-0 z-10 border-b border-dark-400">
+        {/* Avatar on left - mobile only - replaces the logo */}
+        <div className="md:hidden flex items-center ml-2">
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
+        
+        {/* Desktop Search */}
+        <div className="hidden md:flex flex-1 items-center">
+          <div className="relative ml-4">
+            <SearchBar 
+              email={email} 
+              placeholder="Search documents" 
+            />
+          </div>
+        </div>
+        
+        {/* Mobile search bar in center */}
+        <div className="flex-1 md:hidden flex justify-center mx-2">
+          <div className="w-full">
+            <SearchBar email={email} placeholder="Search documents" />
+          </div>
+        </div>
+        
+        {/* Notifications on right for all screen sizes */}
+        <div className="flex items-center mr-2">
+          <Notifications />
+          {/* Desktop UserButton only */}
+          <div className="hidden md:block">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
+        </div>
+      </Header>
       
-      <div className="container mx-auto py-8">
-        {/* Mobile search - loaded second */}
-        <Suspense fallback={<Skeleton className="h-12 w-full max-w-md" />}>
-          <MobileSearchSection email={email} />
-        </Suspense>
-
-        <div className="mb-8 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-8">
+        {/* Title and Add Button - desktop only */}
+        <div className="hidden md:flex mb-8 items-center justify-between">
           <h1 className="text-2xl font-bold text-white">My Documents</h1>
-          <AddDocumentBtn 
-            userId={clerkUser.id}
-            email={email}
-          />
+          <AddDocumentBtn userId={clerkUser.id} email={email} />
         </div>
 
-        {/* Documents section with streaming - loaded last */}
-        <section className="mt-8">
+        {/* Documents Section with responsive styling */}
+        <section className="mt-4 md:mt-8">
           <Suspense fallback={<DocumentsSkeleton />}>
             <DocumentsSection email={email} />
           </Suspense>
         </section>
+        
+        {/* Add floating action button for mobile */}
+        <div className="block md:hidden fixed bottom-6 right-6 z-10">
+          <AddDocumentBtn 
+            userId={clerkUser.id} 
+            email={email} 
+            isMobile={true} 
+          />
+        </div>
       </div>
     </main>
   );

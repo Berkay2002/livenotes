@@ -1,6 +1,8 @@
 import type { Config } from 'tailwindcss';
+import { fontFamily } from 'tailwindcss/defaultTheme';
 
-const { fontFamily } = require('tailwindcss/defaultTheme');
+// Use a more direct approach that works with TypeScript
+const tailwindAnimate = require('tailwindcss-animate');
 
 const config = {
   darkMode: ['class'],
@@ -84,7 +86,10 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    tailwindAnimate,
+    // Removing the troublesome displaymodes plugin for now
+  ],
 } satisfies Config;
 
 export default config;

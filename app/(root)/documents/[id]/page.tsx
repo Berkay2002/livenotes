@@ -3,6 +3,24 @@ import { getClerkUsers } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation";
 import CollaborativeRoom from "@/components/CollaborativeRoom"
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Define types
+type UserType = 'editor' | 'viewer';
+
+interface SearchParamProps {
+  params: {
+    id: string;
+  };
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
 
 const Document = async ({ params: { id } }: SearchParamProps) => {
   const clerkUser = await currentUser();

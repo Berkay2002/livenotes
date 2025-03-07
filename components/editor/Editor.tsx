@@ -45,14 +45,15 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="editor-container size-full">
-        <div className="toolbar-wrapper flex min-w-full justify-between">
+        {/* Responsive Toolbar - Hide on mobile */}
+        <div className="toolbar-wrapper hidden md:flex min-w-full justify-between">
           <ToolbarPlugin />
           {currentUserType === 'editor' && <DeleteModal roomId={roomId} />}
         </div>
 
         <div className="editor-wrapper flex flex-col items-center justify-start">
           {status === 'not-loaded' || status === 'loading' ? <Loader /> : (
-            <div className="editor-inner min-h-[1100px] relative mb-5 h-fit w-full max-w-[800px] shadow-md lg:mb-10">
+            <div className="editor-inner min-h-screen md:min-h-[1100px] relative mb-5 h-fit w-full max-w-[800px] shadow-md lg:mb-10 px-4 md:px-0">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable className="editor-input h-full" />
@@ -66,11 +67,14 @@ export function Editor({ roomId, currentUserType }: { roomId: string, currentUse
             </div>
           )}
 
-          <LiveblocksPlugin>
-            <FloatingComposer className="w-[350px]" />
-            <FloatingThreads threads={threads} />
-            <Comments />
-          </LiveblocksPlugin>
+          {/* Comments System - Hide on mobile (we'll use a separate mobile comments UI) */}
+          <div className="hidden md:block">
+            <LiveblocksPlugin>
+              <FloatingComposer className="w-[350px]" />
+              <FloatingThreads threads={threads} />
+              <Comments />
+            </LiveblocksPlugin>
+          </div>
         </div>
       </div>
     </LexicalComposer>

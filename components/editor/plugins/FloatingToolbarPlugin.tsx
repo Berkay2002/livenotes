@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import * as React from 'react';
 import { createPortal } from 'react-dom';
+import styles from './FloatingToolbarPlugin.module.css';
 
 export default function FloatingToolbar() {
   const [editor] = useLexicalComposerContext();
@@ -99,17 +100,21 @@ function Toolbar({
 
   return createPortal(
     <div
-      ref={setFloating}
-      style={{
-        position: strategy,
-        top: 0,
-        left: 0,
-        transform: `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`,
-        minWidth: 'max-content',
+      ref={(element) => {
+        setFloating(element);
+        if (element) {
+          element.style.setProperty('--x', `${Math.round(x)}px`);
+          element.style.setProperty('--y', `${Math.round(y)}px`);
+          if (strategy) {
+            element.style.position = strategy;
+          }
+        }
       }}
+      className={styles.floatingContainer}
     >
       <div className="floating-toolbar">
         <button
+          aria-label="Add comment"
           onClick={() => {
             const isOpen = editor.dispatchCommand(
               OPEN_FLOATING_COMPOSER_COMMAND,
