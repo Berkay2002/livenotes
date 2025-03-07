@@ -3,8 +3,6 @@ import { getClerkUsers } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation";
 import CollaborativeRoom from "@/components/CollaborativeRoom"
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // Define types
 type UserType = 'editor' | 'viewer';

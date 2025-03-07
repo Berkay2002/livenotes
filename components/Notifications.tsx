@@ -9,8 +9,13 @@ import { InboxNotification, InboxNotificationList, LiveblocksUIConfig } from "@l
 import { useInboxNotifications, useUnreadInboxNotificationsCount } from "@liveblocks/react/suspense"
 import Image from "next/image"
 import { ReactNode, useEffect, useState } from "react"
+import { cn } from "@/lib/utils"
 
-const Notifications = () => {
+interface NotificationsProps {
+  className?: string;
+}
+
+const Notifications = ({ className }: NotificationsProps) => {
   const { inboxNotifications } = useInboxNotifications();
   const { count } = useUnreadInboxNotificationsCount();
   const [isMobile, setIsMobile] = useState(false);
@@ -41,7 +46,7 @@ const Notifications = () => {
             alt="inbox"
             width={24}
             height={24}
-            className={isOpen ? 'opacity-100' : 'opacity-80 hover:opacity-100'}
+            className={cn(isOpen ? 'opacity-100' : 'opacity-80 hover:opacity-100', className)}
           />
         </div>
         {count > 0 && (
