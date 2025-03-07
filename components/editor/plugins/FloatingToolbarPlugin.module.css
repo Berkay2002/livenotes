@@ -1,0 +1,7 @@
+.floatingContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: max-content;
+  transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+} 

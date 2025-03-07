@@ -112,6 +112,13 @@ const Home = async () => {
     <main className="min-h-screen bg-dark-100">
       {/* Responsive Header */}
       <Header className="sticky left-0 top-0 z-10 border-b border-dark-400">
+        {/* Avatar on left - mobile only - replaces the logo */}
+        <div className="md:hidden flex items-center ml-2">
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
+        
         {/* Desktop Search */}
         <div className="hidden md:flex flex-1 items-center">
           <div className="relative ml-4">
@@ -122,26 +129,26 @@ const Home = async () => {
           </div>
         </div>
         
-        {/* Mobile Title */}
-        <div className="flex md:hidden flex-1 items-center px-4">
-          <h1 className="text-xl font-bold text-white">LiveNotes</h1>
+        {/* Mobile search bar in center */}
+        <div className="flex-1 md:hidden flex justify-center mx-2">
+          <div className="w-full">
+            <SearchBar email={email} placeholder="Search documents" />
+          </div>
         </div>
         
-        {/* Universal Header Actions */}
-        <div className="flex items-center gap-3 lg:gap-4">
+        {/* Notifications on right for all screen sizes */}
+        <div className="flex items-center mr-2">
           <Notifications />
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
+          {/* Desktop UserButton only */}
+          <div className="hidden md:block">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
         </div>
       </Header>
       
       <div className="container mx-auto px-4 py-8">
-        {/* Mobile Search - only on small screens */}
-        <div className="block md:hidden mb-6">
-          <SearchBar email={email} placeholder="Search documents" />
-        </div>
-
         {/* Title and Add Button - desktop only */}
         <div className="hidden md:flex mb-8 items-center justify-between">
           <h1 className="text-2xl font-bold text-white">My Documents</h1>

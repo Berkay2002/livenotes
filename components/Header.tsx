@@ -21,12 +21,14 @@ const Header = ({ children, className }: HeaderProps) => {
         />
         
         {/* Icon-only for mobile screens */}
+        {/* Temporarily commented out
         <LiveNotesLogo
           variant="icon"
           width={36}
           height={36}
           className="md:hidden"
         />
+        */}
       </Link>
       {children}
     </div>
