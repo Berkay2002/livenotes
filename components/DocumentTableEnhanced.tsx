@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { updateDocument } from '@/lib/actions/room.actions';
 import { MobileActionMenu } from '@/components/MobileActionMenu';
 import { Pencil, ExternalLink, Lock } from 'lucide-react';
+import StarButton from './StarButton';
+import { useUser } from '@clerk/nextjs';
 
 interface Document {
   id: string;
@@ -91,6 +93,9 @@ const getUserPermissions = (document: Document, userEmail: string) => {
 };
 
 export const DocumentTableEnhanced = ({ documents, userEmail }: DocumentsTableProps) => {
+  const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress || userEmail;
+  
   const handleTitleUpdate = async (id: string, newTitle: string) => {
     if (!newTitle.trim()) return;
     
@@ -113,13 +118,13 @@ export const DocumentTableEnhanced = ({ documents, userEmail }: DocumentsTablePr
             <th className="px-4 py-3 hidden md:table-cell">Owner</th>
             <th className="px-4 py-3 hidden sm:table-cell">Location</th>
             <th className="px-4 py-3 hidden sm:table-cell">Permission</th>
-            <th className="px-4 py-3 text-center w-[100px]">Actions</th>
+            <th className="px-4 py-3 text-center w-[140px]">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-dark-400">
           {documents.map((document: Document, index: number) => {
             // Determine document permissions
-            const { isOwner, canEdit } = getUserPermissions(document, userEmail);
+            const { isOwner, canEdit } = getUserPermissions(document, email);
             
             return (
               <tr key={document.id} className="group transition-colors hover:bg-dark-300">
@@ -178,6 +183,14 @@ export const DocumentTableEnhanced = ({ documents, userEmail }: DocumentsTablePr
                 <td className="px-4 py-3 text-center">
                   {/* Desktop Actions */}
                   <div className="hidden sm:flex items-center justify-center space-x-2">
+                    {/* Star button - always visible */}
+                    <StarButton 
+                      documentId={document.id} 
+                      userEmail={email} 
+                      size="sm" 
+                      variant="ghost"
+                    />
+                    
                     {/* Open document - always visible */}
                     <Link 
                       href={`/documents/${document.id}`}
@@ -204,6 +217,7 @@ export const DocumentTableEnhanced = ({ documents, userEmail }: DocumentsTablePr
                       document={document} 
                       isOwner={isOwner}
                       canEdit={canEdit}
+                      userEmail={email}
                     />
                   </div>
                 </td>

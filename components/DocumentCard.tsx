@@ -30,6 +30,9 @@ const DocumentCard = ({ document }: DocumentCardProps) => {
     }
   }, [user, metadata]);
 
+  // If user is not loaded yet, don't render anything
+  if (!user) return null;
+
   return (
     <div className="group relative rounded-lg bg-dark-200 p-5 shadow-md transition-all hover:bg-dark-300 hover:shadow-xl">
       <div className="mb-4 flex h-36 items-center justify-center rounded bg-dark-100/70">
@@ -78,6 +81,7 @@ const DocumentCard = ({ document }: DocumentCardProps) => {
             }}
             isOwner={isOwner}
             canEdit={canEdit}
+            userEmail={user.primaryEmailAddress?.emailAddress || ''}
           />
         </div>
       </div>

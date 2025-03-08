@@ -9,6 +9,7 @@ import Provider from "./Provider"
 import { PerformanceOptimizer } from "@/components/PerformanceOptimizer"
 import ResponsiveLayout from "@/components/ui/ResponsiveLayout"
 import { Analytics } from "@vercel/analytics/react"
+import { InstallPrompt } from '@/components/InstallPrompt'
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -19,62 +20,71 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   title: 'LiveNotes',
-  description: 'Your go-to collaborative editor',
-  manifest: '/manifest.json',
+  description: 'A collaborative note-taking platform with real-time editing',
   applicationName: 'LiveNotes',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'LiveNotes',
   },
   formatDetection: {
     telephone: false,
   },
-  other: {
-    'Cache-Control': 'public, max-age=3600, must-revalidate',
-    'apple-mobile-web-app-capable': 'yes',
-    'mobile-web-app-capable': 'yes',
-  }
-}
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/icons/favicon-32x32.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
+};
 
 export const viewport: Viewport = {
+  themeColor: '#111827',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#4f46e5',
-}
+  viewportFit: 'cover',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-        variables: { 
-          colorPrimary: "#3371FF" ,
-          fontSize: '16px'
-        },
-      }}
-    >
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-          <meta name="apple-mobile-web-app-status-bar" content="#4f46e5" />
-        </head>
-        <body
-          className={cn(
-            "min-h-screen font-sans antialiased",
-            fontSans.variable
-          )}
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn("bg-dark-100 font-sans antialiased", fontSans.variable)}>
+        <ClerkProvider
+          appearance={{
+            baseTheme: dark,
+            elements: {
+              formButtonPrimary: 'bg-accent-primary hover:bg-accent-primary/80 text-accent-contrast',
+              card: 'bg-dark-200 border-dark-400',
+              headerTitle: 'text-white',
+              headerSubtitle: 'text-gray-400',
+              socialButtonsBlockButton: 'bg-dark-300 border-dark-400 text-white',
+              dividerLine: 'bg-dark-400',
+              dividerText: 'text-gray-400',
+              formField: 'text-white',
+              formFieldLabel: 'text-gray-400 font-normal',
+              inpuLabel: 'text-gray-400 font-normal',
+              formFieldInput: 'bg-dark-300 border-dark-400',
+              footer: 'hidden',
+              footerActionLink: 'text-white font-normal',
+              footerActionText: 'text-gray-400 font-normal',
+              identityPreview: 'bg-dark-300 border-dark-400',
+              identityPreviewText: 'text-white',
+              identityPreviewEditButton: 'text-accent-primary hover:text-accent-primary/80',
+            }
+          }}
         >
           <Provider>
             <PerformanceOptimizer />
             <ResponsiveLayout>
               {children}
             </ResponsiveLayout>
+            <InstallPrompt />
+            <Analytics />
           </Provider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   )
 }

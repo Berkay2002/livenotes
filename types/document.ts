@@ -1,10 +1,15 @@
-export interface DocumentData {
+export interface Document {
+  id: string;
+  metadata: {
+    title: string;
+    email: string;
+    [key: string]: any;
+  };
+  createdAt: string;
+  updatedAt?: string;
+  collaborators?: {
     id: string;
-    metadata: {
-      creatorId: string;
-      email: string;
-      title: string;
-    };
-    usersAccesses: Record<string, string[]>;
-    createdAt: string;
-  }
+    email: string;
+    role: 'owner' | 'editor' | 'viewer';
+  }[];
+}

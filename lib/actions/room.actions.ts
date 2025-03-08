@@ -149,6 +149,54 @@ export async function getDocuments(email: string, searchQuery?: string) {
   }
 }
 
+// Function to get documents shared with the user (where user is not the creator)
+export async function getSharedDocuments(email: string, searchQuery?: string) {
+  const cacheKey = `shared-documents-${email}-${searchQuery || ''}`;
+
+  try {
+    // Get from cache or fetch from Liveblocks with improved error handling
+    return await getCachedData(cacheKey, async () => {
+      console.time('getSharedDocuments');
+      
+      // Get all rooms for the user
+      const rooms = await liveblocks.getRooms({ userId: email });
+      
+      // Filter rooms where user has access but is not the creator
+      const sharedRooms = {
+        ...rooms,
+        data: rooms.data.filter((room: any) => {
+          // Filter out rooms where the user is the creator
+          return room.metadata?.email !== email;
+        })
+      };
+      
+      // If search query is provided, further filter rooms by title
+      if (searchQuery && searchQuery.trim() !== '') {
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        
+        // Filter rooms where title contains the search query (case insensitive)
+        const filteredRooms = {
+          ...sharedRooms,
+          data: sharedRooms.data.filter((room: any) => {
+            const title = room.metadata?.title?.toLowerCase() || '';
+            return title.includes(lowerCaseQuery);
+          })
+        };
+        
+        console.timeEnd('getSharedDocuments');
+        return parseStringify(filteredRooms);
+      }
+      
+      console.timeEnd('getSharedDocuments');
+      return parseStringify(sharedRooms);
+    });
+  } catch (error) {
+    console.error("Error fetching shared documents:", error);
+    // Return empty array instead of throwing an error
+    return parseStringify({ data: [] });
+  }
+}
+
 export const updateDocumentAccess = async ({ roomId, email, userType, updatedBy }: ShareDocumentParams) => {
   try {
     const usersAccesses: RoomAccesses = {
@@ -159,30 +207,82 @@ export const updateDocumentAccess = async ({ roomId, email, userType, updatedBy 
       usersAccesses
     })
 
-    if(room) {
-      const notificationId = nanoid();
+    // Create notification in user's inbox
+    const notificationId = nanoid();
+    
+    await liveblocks.triggerInboxNotification({
+      userId: email,
+      kind: '$documentAccess',
+      subjectId: notificationId,
+      roomId,
+      activityData: {
+        title: `You have been granted ${userType} access to a document`,
+        userType,
+        documentTitle: room.metadata?.title?.toString() || 'Document',
+        sharedBy: typeof updatedBy === 'string' ? updatedBy : 'A user'
+      }
+    });
 
-      await liveblocks.triggerInboxNotification({
-        userId: email,
-        kind: '$documentAccess',
-        subjectId: notificationId,
-        activityData: {
-          userType,
-          title: `You have been granted ${userType} access to the document by ${updatedBy.name}`,
-          updatedBy: updatedBy.name,
-          avatar: updatedBy.avatar,
-          email: updatedBy.email
-        },
-        roomId
-      })
-    }
+    // Send push notification to the user if they have subscriptions
+    await sendDocumentSharedPushNotification({
+      userEmail: email,
+      documentId: roomId,
+      documentTitle: room.metadata?.title?.toString() || 'Document',
+      sharedBy: typeof updatedBy === 'string' ? updatedBy : 'A user',
+      shareType: userType
+    });
 
-    revalidatePath(`/documents/${roomId}`);
     return parseStringify(room);
   } catch (error) {
-    console.log(`Error happened while updating a room access: ${error}`);
+    console.error('Error updating document access:', error);
+    return null;
   }
-}
+};
+
+/**
+ * Send push notification when a document is shared with a user
+ */
+export const sendDocumentSharedPushNotification = async ({
+  userEmail,
+  documentId,
+  documentTitle,
+  sharedBy,
+  shareType
+}: {
+  userEmail: string;
+  documentId: string;
+  documentTitle: string;
+  sharedBy: string;
+  shareType: string;
+}) => {
+  try {
+    const shareTypeLabel = shareType === 'editor' ? 'edit' : 'view';
+    
+    const response = await fetch('/api/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userEmail,
+        title: 'Document Shared',
+        body: `${sharedBy} shared "${documentTitle}" with you (${shareTypeLabel} access)`,
+        url: `/documents/${documentId}`,
+        documentId,
+        documentTitle
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send push notification:', await response.text());
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+    return false;
+  }
+};
 
 export const removeCollaborator = async ({ roomId, email }: {roomId: string, email: string}) => {
   try {
@@ -214,3 +314,223 @@ export const deleteDocument = async (roomId: string) => {
     console.log(`Error happened while deleting a room: ${error}`);
   }
 }
+
+interface StarToggleResult {
+  success: boolean;
+  isStarred?: boolean;
+  error?: string;
+}
+
+// Toggle star status for a document
+export const toggleDocumentStar = async (roomId: string, email: string): Promise<StarToggleResult> => {
+  try {
+    // Get the current document
+    const document = await liveblocks.getRoom(roomId);
+    
+    // If document doesn't exist, throw error
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    
+    // Get current starred users (ensure it's an array)
+    const starredBy = Array.isArray(document.metadata?.starredBy) 
+      ? document.metadata.starredBy 
+      : [];
+    
+    // Check if user already starred the document
+    const isStarred = starredBy.includes(email);
+    
+    // Update the starred users list
+    const updatedStarredBy = isStarred
+      ? starredBy.filter((userEmail: string) => userEmail !== email) // Remove user if already starred
+      : [...starredBy, email]; // Add user if not starred
+    
+    // Update document metadata
+    await liveblocks.updateRoom(roomId, {
+      metadata: {
+        ...document.metadata,
+        starredBy: updatedStarredBy,
+      },
+    });
+    
+    // Return the updated star status
+    return {
+      success: true,
+      isStarred: !isStarred,
+    };
+  } catch (error) {
+    console.error('Error toggling document star:', error);
+    return {
+      success: false,
+      error: 'Failed to update star status',
+    };
+  }
+};
+
+// Get all documents starred by a user
+export async function getStarredDocuments(email: string, searchQuery?: string) {
+  const cacheKey = `starred-documents-${email}-${searchQuery || ''}`;
+
+  try {
+    // Get from cache or fetch from Liveblocks
+    return await getCachedData(cacheKey, async () => {
+      console.time('getStarredDocuments');
+      
+      // Get all rooms for the user
+      const rooms = await liveblocks.getRooms({ userId: email });
+      
+      // Filter rooms that the user has starred
+      const starredRooms = {
+        ...rooms,
+        data: rooms.data.filter((room: any) => {
+          const starredBy = Array.isArray(room.metadata?.starredBy) 
+            ? room.metadata.starredBy 
+            : [];
+          return starredBy.includes(email);
+        })
+      };
+      
+      // If search query is provided, further filter rooms by title
+      if (searchQuery && searchQuery.trim() !== '') {
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        
+        // Filter rooms where title contains the search query (case insensitive)
+        const filteredRooms = {
+          ...starredRooms,
+          data: starredRooms.data.filter((room: any) => {
+            const title = room.metadata?.title?.toLowerCase() || '';
+            return title.includes(lowerCaseQuery);
+          })
+        };
+        
+        console.timeEnd('getStarredDocuments');
+        return parseStringify(filteredRooms);
+      }
+      
+      console.timeEnd('getStarredDocuments');
+      return parseStringify(starredRooms);
+    });
+  } catch (error) {
+    console.error("Error fetching starred documents:", error);
+    // Return empty array instead of throwing an error
+    return parseStringify({ data: [] });
+  }
+}
+
+// Check if a document is starred by a user
+export const isDocumentStarred = async (roomId: string, email: string): Promise<boolean> => {
+  try {
+    const document = await liveblocks.getRoom(roomId);
+    if (!document) return false;
+    
+    const starredBy = Array.isArray(document.metadata?.starredBy) 
+      ? document.metadata.starredBy 
+      : [];
+      
+    return Boolean(starredBy.includes(email));
+  } catch (error) {
+    console.error('Error checking document star status:', error);
+    return false;
+  }
+};
+
+/**
+ * Send push notification when a user is mentioned in a comment
+ */
+export const sendMentionPushNotification = async ({
+  userEmail,
+  documentId,
+  documentTitle,
+  mentionedBy,
+  commentText
+}: {
+  userEmail: string;
+  documentId: string;
+  documentTitle: string;
+  mentionedBy: string;
+  commentText: string;
+}) => {
+  try {
+    // Truncate comment text if it's too long (for notification preview)
+    const truncatedComment = commentText.length > 50
+      ? `${commentText.substring(0, 50)}...`
+      : commentText;
+    
+    const response = await fetch('/api/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userEmail,
+        title: 'Mentioned in Comment',
+        body: `${mentionedBy} mentioned you in ${documentTitle}: "${truncatedComment}"`,
+        url: `/documents/${documentId}`,
+        documentId,
+        documentTitle,
+        type: 'mention'
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send mention push notification:', await response.text());
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending mention push notification:', error);
+    return false;
+  }
+};
+
+/**
+ * Send push notification when a comment is added to a user's document
+ */
+export const sendCommentPushNotification = async ({
+  userEmail,
+  documentId,
+  documentTitle,
+  commentedBy,
+  commentText
+}: {
+  userEmail: string;
+  documentId: string;
+  documentTitle: string;
+  commentedBy: string;
+  commentText: string;
+}) => {
+  try {
+    // Skip if commenter is the document owner (no need to notify yourself)
+    if (commentedBy === userEmail) return true;
+    
+    // Truncate comment text if it's too long
+    const truncatedComment = commentText.length > 50
+      ? `${commentText.substring(0, 50)}...`
+      : commentText;
+    
+    const response = await fetch('/api/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userEmail,
+        title: 'New Comment',
+        body: `${commentedBy} commented on ${documentTitle}: "${truncatedComment}"`,
+        url: `/documents/${documentId}`,
+        documentId,
+        documentTitle,
+        type: 'comment'
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send comment push notification:', await response.text());
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending comment push notification:', error);
+    return false;
+  }
+};

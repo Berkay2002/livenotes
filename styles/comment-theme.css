@@ -1,0 +1,46 @@
+/* Comment Theme Overrides */
+
+/* Liveblocks theme overrides */
+.lb-root {
+  --lb-accent: #565f73 !important;
+  --lb-accent-subtle: #282d38 !important;
+  --lb-radius: 0px;
+  --lb-dynamic-background: #1a1e27 !important;
+}
+
+/* Primary button colors for send button */
+.lb-button:where([data-variant="primary"]) {
+  background-color: #565f73 !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+.lb-button:where([data-variant="primary"]):hover {
+  background-color: #636c84 !important;
+}
+
+/* Toolbar button colors */
+.lb-composer-toolbar-button:hover {
+  background-color: #565f73 !important;
+  color: white !important;
+}
+
+/* Mention styling in composer */
+.lb-lexical-mention-node {
+  color: white !important;
+  background-color: #565f73 !important;
+  border-radius: 4px !important;
+  padding: 1px 4px !important;
+  font-weight: 500 !important;
+}
+
+/* Selected items in dropdown */
+.lb-composer-suggestions-list-item[aria-selected="true"] {
+  background-color: #565f73 !important;
+}
+
+/* Update focus color for composer input */
+.lb-composer-editor:focus {
+  outline: none !important;
+  box-shadow: none !important;
+} 
