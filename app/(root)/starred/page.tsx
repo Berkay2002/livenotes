@@ -10,16 +10,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentTableEnhanced } from '@/components/DocumentTableEnhanced';
 import { FileText, Star, Info } from 'lucide-react';
-
-// Define interface for document type
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-  };
-  createdAt: string;
-}
+import { Document } from '@/types/document';
 
 // Separate component for starred documents section to enable streaming
 const StarredDocumentsSection = async ({ email }: { email: string }) => {

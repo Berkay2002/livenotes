@@ -9,16 +9,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentTableEnhanced } from '@/components/DocumentTableEnhanced';
 import { Share2, ExternalLink } from 'lucide-react';
-
-// Define interface for document type
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-  };
-  createdAt: string;
-}
+import { Document } from '@/types/document';
 
 // Separate component for shared documents section to enable streaming
 const SharedDocumentsSection = async ({ email }: { email: string }) => {

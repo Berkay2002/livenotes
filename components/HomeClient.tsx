@@ -1,6 +1,6 @@
 'use client';
 
-import { DocumentData } from '@/types/document';
+import { Document } from '@/types/document';
 import DocumentCard from './DocumentCard';
 import NewDocumentCard from './NewDocumentCard';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import { Search as SearchIcon, FileText } from 'lucide-react';
 import AddDocumentBtn from './AddDocumentBtn';
 
 interface HomeClientProps {
-  initialDocuments: DocumentData[];
+  initialDocuments: Document[];
   userId: string;
   email: string;
 }

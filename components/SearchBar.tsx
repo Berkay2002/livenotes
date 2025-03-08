@@ -4,7 +4,7 @@ import { Search, FileText, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { DocumentData } from '@/types/document';
+import { Document } from '@/types/document';
 import { getDocuments } from '@/lib/actions/room.actions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { dateConverter } from '@/lib/utils';
@@ -20,7 +20,7 @@ const SearchBar = ({ email, placeholder = "Search documents", className }: Searc
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<DocumentData[]>([]);
+  const [searchResults, setSearchResults] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchBarWidth, setSearchBarWidth] = useState(0);
   const debouncedValue = useDebounce(searchQuery, 300);

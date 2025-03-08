@@ -13,17 +13,7 @@ import { MobileActionMenu } from '@/components/MobileActionMenu';
 import { Pencil, ExternalLink, Lock } from 'lucide-react';
 import StarButton from './StarButton';
 import { useUser } from '@clerk/nextjs';
-
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-    creatorId?: string; // Optional creator ID
-  };
-  createdAt: string;
-  usersAccesses?: Record<string, string[]>; // User access rights
-}
+import { Document } from '@/types/document';
 
 interface DocumentsTableProps {
   documents: Document[];

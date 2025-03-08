@@ -14,16 +14,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentTableEnhanced } from '@/components/DocumentTableEnhanced';
 import { FileText, FilePlus } from 'lucide-react';
-
-// Define interface for document type
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-  };
-  createdAt: string;
-}
+import { Document } from '@/types/document';
 
 // Separate component for documents section to enable streaming
 const DocumentsSection = async ({ email }: { email: string }) => {

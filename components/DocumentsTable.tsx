@@ -10,15 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateDocument, deleteDocument } from '@/lib/actions/room.actions';
 import { Pencil, MoreVertical, ExternalLink, Trash2 } from 'lucide-react';
-
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-  };
-  createdAt: string;
-}
+import { Document } from '@/types/document';
 
 interface DocumentsTableProps {
   documents: Document[];

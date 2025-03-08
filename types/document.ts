@@ -3,6 +3,7 @@ export interface Document {
   metadata: {
     title: string;
     email: string;
+    creatorId?: string;
     [key: string]: any;
   };
   createdAt: string;
@@ -12,4 +13,5 @@ export interface Document {
     email: string;
     role: 'owner' | 'editor' | 'viewer';
   }[];
+  usersAccesses?: Record<string, string[]>; // User access rights
 }

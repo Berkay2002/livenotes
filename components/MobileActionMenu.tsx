@@ -13,15 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateDocument, deleteDocument, toggleDocumentStar, isDocumentStarred } from '@/lib/actions/room.actions';
-
-interface Document {
-  id: string;
-  metadata: {
-    title: string;
-    email: string;
-  };
-  createdAt: string;
-}
+import { Document } from '@/types/document';
 
 interface MobileActionMenuProps {
   document: Document;

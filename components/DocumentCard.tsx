@@ -1,7 +1,7 @@
 'use client';
 
 import { dateConverter } from '@/lib/utils';
-import { DocumentData } from '@/types/document';
+import { Document } from '@/types/document';
 import { MoreHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 
 interface DocumentCardProps {
-  document: DocumentData;
+  document: Document;
 }
 
 const DocumentCard = ({ document }: DocumentCardProps) => {
